@@ -13,6 +13,7 @@
         <PackageLicenseUrl>https://github.com/JessieWadman/BulkLoad/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/JessieWadman/BulkLoad</RepositoryUrl>
         <RepositoryType>Github</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
