@@ -1,6 +1,8 @@
 ﻿using System.Data;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using BulkLoad.EntityFrameworkCore.Abstractions.Exceptions;
 using BulkLoad.EntityFrameworkCore.Abstractions.Hashing;
 using BulkLoad.EntityFrameworkCore.Abstractions.Helpers;
 using BulkLoad.EntityFrameworkCore.Abstractions.Models;
@@ -60,50 +62,88 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
             
             await foreach (var entity in Options.Source.WithCancellation(cancellationToken))
             {
-                ConvertToDataRow(entity, batchTable, entityOffset++, properties, rowHashColumn, rowHashProp, columnsToHash);
-                if (batchTable.Rows.Count < Options.BatchSize)
-                    continue;
+                try
+                {
+                    ConvertToDataRow(entity, batchTable, entityOffset++, properties, rowHashColumn, rowHashProp,
+                        columnsToHash);
+                    if (batchTable.Rows.Count < Options.BatchSize)
+                        continue;
 
-                await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
-                
-                if (Options.Kind == BulkInsertKind.IncrementalChanges)
+                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
+
+                    if (Options.Kind == BulkInsertKind.IncrementalChanges)
+                    {
+                        await MergeTempTableIntoStorageTableAsync(batchOffset, cancellationToken);
+                    }
+
+                    batchOffset += batchTable.Rows.Count;
+                    batchTable.Clear();
+                }
+                catch (Exception error)
+                {
+                    throw new BulkLoadAndMergeException(error.Message, error);
+                }
+            }
+
+            try
+            {
+                if (batchTable.Rows.Count > 0)
+                {
+                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
+                }
+
+                if (Options.Kind == BulkInsertKind.Snapshot)
+                {
+                    await IdentifyDeletionsAsync(cancellationToken);
+                    await HandleDeletionsAsync(cancellationToken);
+                }
+
+                if (Options.Kind == BulkInsertKind.Snapshot || batchTable.Rows.Count > 0)
                 {
                     await MergeTempTableIntoStorageTableAsync(batchOffset, cancellationToken);
                 }
-                
-                batchOffset += batchTable.Rows.Count;
-                batchTable.Clear();
             }
-
-            if (batchTable.Rows.Count > 0)
+            catch (Exception error)
             {
-                await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
-            }
-
-            if (Options.Kind == BulkInsertKind.Snapshot)
-            {
-                await IdentifyDeletionsAsync(cancellationToken);
-                await HandleDeletionsAsync(cancellationToken);
-            }
-            
-            if (Options.Kind == BulkInsertKind.Snapshot || batchTable.Rows.Count > 0)
-            {
-                await MergeTempTableIntoStorageTableAsync(batchOffset, cancellationToken);
+                throw new BulkLoadAndMergeException(error.Message, error);
             }
 
             if (Options.TrackChanges)
             {
-                var changes = EnumerateChangesAsync(cancellationToken);
-                await foreach (var change in changes)
+                IAsyncEnumerable<BulkInsertRecord<TEntity>> changes;
+                try
+                {
+                    changes = EnumerateChangesAsync(cancellationToken);
+                }
+                catch (Exception error)
+                {
+                    throw new BulkLoadAndMergeException(error.Message, error);
+                }
+
+                await foreach (var change in changes.WithCancellation(cancellationToken))
                     yield return change;
             }
 
-            await DbContext.Database.CommitTransactionAsync(cancellationToken);
+            try
+            {
+                await DbContext.Database.CommitTransactionAsync(cancellationToken);
+            }
+            catch (Exception error)
+            {
+                throw new BulkLoadAndMergeException(error.Message, error);
+            }
         }
         finally
         {
-            // Ensure cleanup, so we dont pass cancellation token.
-            await DropTempTableAsync(CancellationToken.None);
+            try
+            {
+                // Ensure cleanup, so we dont pass cancellation token.
+                await DropTempTableAsync(CancellationToken.None);
+            }
+            catch
+            {
+                // ignored
+            }
         }
     }
     
