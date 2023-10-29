@@ -1,0 +1,41 @@
+name: Publish
+on:
+  push:
+    branches:
+      - master
+env:
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
+  TERM: xterm
+
+jobs:
+  publish:
+    name: Build & Test & Publish
+    runs-on: ubuntu-latest
+    steps:
+      
+    - name: Checkout code
+      uses: actions/checkout@v1
+      
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        dotnet-quality: 'preview'
+
+    - name: Set version
+      run: echo "VERSION=1.0.$GITHUB_RUN_NUMBER-rc2" >> $GITHUB_ENV
+
+    - name: Print version
+      run: echo "Building $VERSION"
+
+    - name: Test
+      run: dotnet test
+
+    - name: Clean
+      run: dotnet clean
+
+    - name: Build all in release mode
+      run: dotnet build BulkLoad.EntityFrameworkCore.sln -c Release /p:CI=true /p:Version=$VERSION
+
+    - name: Publish
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate -ApiKey ${{secrets.NUGET_KEY}}
+    
