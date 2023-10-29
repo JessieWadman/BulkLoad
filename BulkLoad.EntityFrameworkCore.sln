@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{257E44D0-51F2-4816-8679-C710D610B5F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkLoad.EntityFrameworkCore.Postgres", "src\BulkLoad.EntityFrameworkCore.Postgres\BulkLoad.EntityFrameworkCore.Postgres.csproj", "{7E468DF6-90FB-4363-847C-93E21C6BAE2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkLoad.EntityFrameworkCore.Abstractions", "src\BulkLoad.EntityFrameworkCore.Abstractions\BulkLoad.EntityFrameworkCore.Abstractions.csproj", "{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkLoad.EntityFrameworkCore.SqlServer", "src\BulkLoad.EntityFrameworkCore.SqlServer\BulkLoad.EntityFrameworkCore.SqlServer.csproj", "{111AC268-39B0-4453-A290-668CA3A97155}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F5D561C0-D6F7-4111-BA2F-ECB45DCC801F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlServerSample1", "samples\SqlServerSample1\SqlServerSample1.csproj", "{499A6460-7DC4-421E-8259-FCFF116EBDB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostgresSample1", "samples\PostgresSample1\PostgresSample1.csproj", "{E615AD43-CD70-40A5-8CD3-2FE8BE45271C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7E468DF6-90FB-4363-847C-93E21C6BAE2F} = {257E44D0-51F2-4816-8679-C710D610B5F5}
+		{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D} = {257E44D0-51F2-4816-8679-C710D610B5F5}
+		{111AC268-39B0-4453-A290-668CA3A97155} = {257E44D0-51F2-4816-8679-C710D610B5F5}
+		{499A6460-7DC4-421E-8259-FCFF116EBDB6} = {F5D561C0-D6F7-4111-BA2F-ECB45DCC801F}
+		{E615AD43-CD70-40A5-8CD3-2FE8BE45271C} = {F5D561C0-D6F7-4111-BA2F-ECB45DCC801F}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E468DF6-90FB-4363-847C-93E21C6BAE2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E468DF6-90FB-4363-847C-93E21C6BAE2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E468DF6-90FB-4363-847C-93E21C6BAE2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E468DF6-90FB-4363-847C-93E21C6BAE2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB3B8A34-6C0B-4690-8A75-2E84B2DBE08D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{111AC268-39B0-4453-A290-668CA3A97155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{111AC268-39B0-4453-A290-668CA3A97155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{111AC268-39B0-4453-A290-668CA3A97155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{111AC268-39B0-4453-A290-668CA3A97155}.Release|Any CPU.Build.0 = Release|Any CPU
+		{499A6460-7DC4-421E-8259-FCFF116EBDB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{499A6460-7DC4-421E-8259-FCFF116EBDB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{499A6460-7DC4-421E-8259-FCFF116EBDB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{499A6460-7DC4-421E-8259-FCFF116EBDB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E615AD43-CD70-40A5-8CD3-2FE8BE45271C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E615AD43-CD70-40A5-8CD3-2FE8BE45271C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E615AD43-CD70-40A5-8CD3-2FE8BE45271C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E615AD43-CD70-40A5-8CD3-2FE8BE45271C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
