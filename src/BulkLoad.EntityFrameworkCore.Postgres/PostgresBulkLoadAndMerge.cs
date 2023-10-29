@@ -183,8 +183,8 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         else
         {
             var queryText = $"""
-                             DELETE tgt FROM {QualifiedTableName} tgt
-                             WHERE EXISTS (SELECT 1 FROM {FormatIdentifier(deletionsTableName)} src WHERE {GetPrimaryKeyComparison("src", "tgt")}
+                             DELETE FROM {QualifiedTableName} tgt
+                             WHERE EXISTS (SELECT 1 FROM {FormatIdentifier(deletionsTableName)} src WHERE {GetPrimaryKeyComparison("src", "tgt")})
                              """;
             await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
         }

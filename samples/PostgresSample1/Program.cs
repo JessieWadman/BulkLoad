@@ -17,7 +17,7 @@ for (var i = 0; i < 10; i++)
 {
     // Change this back and forth between two numbers 1-10 and observe output, to see
     // how records are soft deleted, and then recovered
-    if (i == 4)
+    if (i == 5)
         continue;
     
     var name = "Person #" + i;
@@ -45,7 +45,7 @@ var changes = db
     // Also, do not update it, even something else in the record has changed.
     .ExcludeColumnFromUpdate(e => e.IsAwesome)
     
-    .WithSoftDeletion(e => e.Deleted)
+    // .WithSoftDeletion(e => e.Deleted)
     
     // Once a record is identified as changed, and is merged into the database table, we want a server side
     // expression to be evaluated for the field.
