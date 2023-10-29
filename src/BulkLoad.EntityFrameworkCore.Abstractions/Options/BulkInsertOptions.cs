@@ -3,7 +3,8 @@
 public enum ComparisonMethod
 {
     RowHash,
-    ColumnByColumn
+    ColumnByColumn,
+    NoComparison
 }
 
 public class BulkInsertOptions<T>

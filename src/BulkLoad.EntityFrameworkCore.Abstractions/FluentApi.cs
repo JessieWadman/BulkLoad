@@ -13,7 +13,7 @@ internal sealed class FluentApi<TEntity, TProvider>(TProvider provider) :
     where TProvider : AbstractBulkLoadAndMerge<TEntity>
     where TEntity : class
 {
-    public IBulkLoadAndMergeOptions<TEntity> WithColumnComparison()
+    public IBulkLoadAndMergeOptions<TEntity> WithAllColumnComparison()
     {
         provider.Options.ComparisonMethod = ComparisonMethod.ColumnByColumn;
         provider.Options.RowHashProperty = null;
@@ -38,6 +38,14 @@ internal sealed class FluentApi<TEntity, TProvider>(TProvider provider) :
         provider.Options.RowHashProperty = propertyName;
         provider.Options.RowHashColumn = columnName;
         provider.Options.ComparisonMethod = ComparisonMethod.RowHash;
+        return this;
+    }
+    
+    public IBulkLoadAndMergeOptions<TEntity> WithNoComparison()
+    {
+        provider.Options.RowHashProperty = null;
+        provider.Options.RowHashColumn = null;
+        provider.Options.ComparisonMethod = ComparisonMethod.NoComparison;
         return this;
     }
 
@@ -126,7 +134,14 @@ public interface IMergeStatementConfiguration<TEntity> where TEntity : class
     /// <remarks>
     /// Required when underlying schema cannot be changed. Do consider using RowHash strategy instead, if possible. 
     /// </remarks>
-    IBulkLoadAndMergeOptions<TEntity> WithColumnComparison();
+    IBulkLoadAndMergeOptions<TEntity> WithAllColumnComparison();
+
+    /// <summary>
+    /// Will not compare non-primary key fields of existing records to reduce number of records merged, but will
+    /// instead always update existing records. Useful if you know you will always be updating records that already
+    /// exists on each merge.
+    /// </summary>
+    IBulkLoadAndMergeOptions<TEntity> WithNoComparison();
     
     /// <summary>
     /// (Faster) Hashes each record using XxHash64 before loading it, and compares the hashes of incoming records against hashes on

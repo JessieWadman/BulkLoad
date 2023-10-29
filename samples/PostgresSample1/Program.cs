@@ -37,7 +37,8 @@ var source = employees.AsAsyncEnumerable();
 var changes = db
     .PostgresLoadAndMerge<Employee>()
     .FromSnapshot(source)
-    .WithRowHashComparison(e => e.RowHash)
+    .WithNoComparison()
+    // .WithRowHashComparison(e => e.RowHash)
     
     .WithBatchSize(3)
     

@@ -155,18 +155,24 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
         var recordIsNotSoftedDeleted = string.Empty;
         if (Options.SoftDeleteColumn != null)
             recordIsNotSoftedDeleted = $" AND storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = 0 ";
-        // Flag no-ops
-        var queryText = $"""
-                             UPDATE {formattedTempTableName}
-                                 SET [__action] = 'N'
-                             FROM {formattedTempTableName}
-                             INNER JOIN {QualifiedTableName} AS storageTable ON {GetPrimaryKeyComparison(formattedTempTableName, "storageTable")}
-                             WHERE {formattedTempTableName}.__idx >= {tempTableOffset} AND
-                                   ({GetRecordsAreEqualClause("storageTable", formattedTempTableName)} {recordIsNotSoftedDeleted})
-                         """;
+
+        string queryText;
         
-        var noOpCount = await dbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-        
+        if (Options.ComparisonMethod != ComparisonMethod.NoComparison)
+        {
+            // Flag no-ops
+            queryText = $"""
+                                 UPDATE {formattedTempTableName}
+                                     SET [__action] = 'N'
+                                 FROM {formattedTempTableName}
+                                 INNER JOIN {QualifiedTableName} AS storageTable ON {GetPrimaryKeyComparison(formattedTempTableName, "storageTable")}
+                                 WHERE {formattedTempTableName}.__idx >= {tempTableOffset} AND
+                                       ({GetRecordsAreEqualClause("storageTable", formattedTempTableName)} {recordIsNotSoftedDeleted})
+                             """;
+
+            var noOpCount = await dbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+        }
+
         // Flag updates
         queryText = @$"
             UPDATE {formattedTempTableName}

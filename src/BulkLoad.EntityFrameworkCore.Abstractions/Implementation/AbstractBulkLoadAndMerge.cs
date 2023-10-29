@@ -277,9 +277,12 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
     }
 
     protected virtual string GetRecordsAreEqualClause(string? sourceQualifier, string? targetQualifier)
-        => Options.RowHashProperty != null
-            ? GetRowHashEqualsClause(sourceQualifier, targetQualifier)
-            : GetColumnsEqualsClause(sourceQualifier, targetQualifier);
+        => Options.ComparisonMethod switch
+        {
+            ComparisonMethod.NoComparison => "1=2",
+            ComparisonMethod.RowHash => GetRowHashEqualsClause(sourceQualifier, targetQualifier),
+            ComparisonMethod.ColumnByColumn => GetColumnsEqualsClause(sourceQualifier, targetQualifier)
+        };
     
     protected virtual string GetRecordsAreNotEqualClause(string? sourceQualifier, string? targetQualifier)
         => Options.RowHashProperty != null

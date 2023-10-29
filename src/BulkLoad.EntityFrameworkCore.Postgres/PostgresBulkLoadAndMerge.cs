@@ -1,11 +1,9 @@
 ﻿using System.Buffers;
 using System.Data;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using BulkLoad.EntityFrameworkCore.Abstractions;
 using BulkLoad.EntityFrameworkCore.Abstractions.Helpers;
 using BulkLoad.EntityFrameworkCore.Abstractions.Implementation;
 using BulkLoad.EntityFrameworkCore.Abstractions.Models;
@@ -210,20 +208,23 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         var recordIsNotSoftDeleted = string.Empty;
         if (Options.SoftDeleteColumn != null)
             recordIsNotSoftDeleted = $" AND storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = false ";
-        // Flag no-ops
         
-        var queryText = $"""
+        string queryText;
+        if (Options.ComparisonMethod != ComparisonMethod.NoComparison)
+        {
+            // Flag no-ops
+            queryText = $"""
                              UPDATE {formattedTempTableName}
                                  SET {FormatIdentifier("__action")} = 'N'
-                             FROM {QualifiedTableName} AS storageTable 
+                             FROM {QualifiedTableName} AS storageTable
                              WHERE {GetPrimaryKeyComparison(formattedTempTableName, "storageTable")} AND
                                    {formattedTempTableName}.{FormatIdentifier("__idx")} >= {tempTableOffset} AND
-                                   {GetRecordsAreEqualClause(formattedTempTableName, "storageTable")} 
+                                   {GetRecordsAreEqualClause(formattedTempTableName, "storageTable")}
                                    {recordIsNotSoftDeleted}
                          """;
-        
-        var noOpCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-        
+            var noOpCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+        }
+
         // Flag updates
         queryText = $"""
                      UPDATE {formattedTempTableName}
