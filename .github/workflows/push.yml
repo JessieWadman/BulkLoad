@@ -2,7 +2,7 @@ name: Publish
 on:
   push:
     branches:
-      - master
+      - main
 env:
   DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
   TERM: xterm
