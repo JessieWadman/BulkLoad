@@ -97,10 +97,8 @@ internal sealed class FluentApi<TEntity, TProvider>(TProvider provider) :
         return provider.ExecuteAndGetChangesAsync(cancellationToken);
     }
     
-    public Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        return provider.ExecuteAsync(cancellationToken);
-    }
+    public Task<int> ExecuteAsync(CancellationToken cancellationToken)
+        => provider.ExecuteAsync(cancellationToken);
 }
 
 public interface IBulkLoadSourceConfiguration<TEntity> where TEntity : class

@@ -9,6 +9,7 @@ using BulkLoad.EntityFrameworkCore.Abstractions;
 using BulkLoad.EntityFrameworkCore.Abstractions.Helpers;
 using BulkLoad.EntityFrameworkCore.Abstractions.Implementation;
 using BulkLoad.EntityFrameworkCore.Abstractions.Models;
+using BulkLoad.EntityFrameworkCore.Abstractions.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
@@ -83,7 +84,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         Indented = false
     };
     
-    protected override async ValueTask CopyRecordsIntoStagingTableAsync(DataTable batch, int offset, DataTable tempTable, CancellationToken cancellationToken)
+    protected override async ValueTask CopyRecordsIntoStagingTableAsync(DataTable batch, int offset, CancellationToken cancellationToken)
     {
         var columns = batch.Columns.ToArray();
         var buffer = new ArrayBufferWriter<byte>();
@@ -142,9 +143,6 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         return DbContext.Database.ExecuteSqlAsync($"TRUNCATE TABLE {FormatIdentifier(stagingTableName)}", cancellationToken);
     }
 
-    private string IdentifierList(IEnumerable<string> values)
-        => string.Join(", ", values.Select(FormatIdentifier));
-
     protected override async Task IdentifyDeletionsAsync(CancellationToken cancellationToken)
     {
         var formattedTempTableName = FormatIdentifier(stagingTableName);
@@ -178,7 +176,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
                                    {QualifiedTableName}.{FormatIdentifier(Options.SoftDeleteColumn)} = false
                              """;
             var rowsSoftDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-            Debug.WriteLine(rowsSoftDeleted);
+            RecordsAffected += rowsSoftDeleted;
         }
         else
         {
@@ -186,7 +184,8 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
                              DELETE FROM {QualifiedTableName} tgt
                              WHERE EXISTS (SELECT 1 FROM {FormatIdentifier(deletionsTableName)} src WHERE {GetPrimaryKeyComparison("src", "tgt")})
                              """;
-            await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+            var recordsDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+            RecordsAffected += recordsDeleted;
         }
     }
 
@@ -269,7 +268,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
                      """;
 
         var changeCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-        Debug.WriteLine(changeCount);
+        RecordsAffected += changeCount;
     }
 
     protected override async IAsyncEnumerable<BulkInsertRecord<TEntity>> EnumerateChangesAsync(
@@ -317,6 +316,9 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
             yield return new BulkInsertRecord<TEntity>(BulkInsertAction.Updated, update);
         }
 
+        if (Options.Kind == BulkInsertKind.IncrementalChanges)
+            yield break;
+
         var removalsQuery = $"SELECT src.* FROM {FormatIdentifier(deletionsTableName)} src";
 
         var removals = DbContext
@@ -331,12 +333,9 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         }
     }
 
-    protected override async Task DropTempTableAsync(CancellationToken cancellationToken)
+    protected override Task DropTempTableAsync(CancellationToken cancellationToken)
     {
-        var deleteCommand = $"DROP TABLE IF EXISTS {FormatIdentifier(stagingTableName)}";
-        await DbContext.Database.ExecuteSqlRawAsync(deleteCommand, cancellationToken: cancellationToken);
-        
-        deleteCommand = $"DROP TABLE IF EXISTS {FormatIdentifier(deletionsTableName)}";
-        await DbContext.Database.ExecuteSqlRawAsync(deleteCommand, cancellationToken: cancellationToken);
+        // We're using temporary tables, so no need to explicitly drop them.
+        return Task.CompletedTask;
     }
 }

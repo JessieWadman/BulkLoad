@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using BulkLoad.EntityFrameworkCore.Abstractions.Implementation;
 using BulkLoad.EntityFrameworkCore.Abstractions.Models;
+using BulkLoad.EntityFrameworkCore.Abstractions.Options;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -71,7 +72,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
         return dataTable;
     }
     
-    protected override async ValueTask CopyRecordsIntoStagingTableAsync(DataTable batch, int offset, DataTable tempTable, CancellationToken cancellationToken)
+    protected override async ValueTask CopyRecordsIntoStagingTableAsync(DataTable batch, int offset, CancellationToken cancellationToken)
     {
         var sqlBulkCopy = new SqlBulkCopy(Connection, SqlBulkCopyOptions.Default, Transaction)
         {
@@ -120,7 +121,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                              WHERE storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = 0
                              """;
             var rowsSoftDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-            Debug.WriteLine(rowsSoftDeleted);
+            RecordsAffected += rowsSoftDeleted;
         }
         else
         {
@@ -128,7 +129,8 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                              DELETE tgt FROM {QualifiedTableName} tgt
                              WHERE EXISTS (SELECT 1 FROM {FormatIdentifier(deletionsTableName)} src WHERE {GetPrimaryKeyComparison("src", "tgt")}
                              """;
-            await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+            var rowsDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+            RecordsAffected += rowsDeleted;
         }
     }
 
@@ -207,7 +209,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                      """;
 
         var changeCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
-        Debug.WriteLine(changeCount);
+        RecordsAffected += changeCount;
     }
 
     protected override async IAsyncEnumerable<BulkInsertRecord<TEntity>> EnumerateChangesAsync(
@@ -254,6 +256,9 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
         {
             yield return new BulkInsertRecord<TEntity>(BulkInsertAction.Updated, update);
         }
+        
+        if (Options.Kind == BulkInsertKind.IncrementalChanges)
+            yield break;
 
         var removalsQuery = $"SELECT src.* FROM {FormatIdentifier(deletionsTableName)} src";
 

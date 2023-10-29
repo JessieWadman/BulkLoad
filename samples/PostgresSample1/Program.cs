@@ -13,7 +13,7 @@ db.Database.EnsureCreated();
 
 var employees = new List<Employee>();
 
-for (var i = 0; i < 10; i++)
+for (var i = 0; i < 8; i++)
 {
     // Change this back and forth between two numbers 1-10 and observe output, to see
     // how records are soft deleted, and then recovered
@@ -38,6 +38,9 @@ var changes = db
     .PostgresLoadAndMerge<Employee>()
     .FromSnapshot(source)
     .WithRowHashComparison(e => e.RowHash)
+    
+    .WithBatchSize(3)
+    
     .ExcludePropertyFromComparison(e => e.LastUpdatedUtc)
     
     // Do not include "IsAwesome" in list of columns to compare, when detecting changes to records
@@ -45,7 +48,7 @@ var changes = db
     // Also, do not update it, even something else in the record has changed.
     .ExcludeColumnFromUpdate(e => e.IsAwesome)
     
-    // .WithSoftDeletion(e => e.Deleted)
+    .WithSoftDeletion(e => e.Deleted)
     
     // Once a record is identified as changed, and is merged into the database table, we want a server side
     // expression to be evaluated for the field.
@@ -54,11 +57,13 @@ var changes = db
     // We want to execute the merge, and capture all changes made (note: this part is slow and holds the database
     // transaction for a longer period of time, in order to capture the changes. Only use if you must. Otherwise use
     // the fire-and-forge ExecuteAsync method.
-    .ExecuteAndGetChangesAsync(CancellationToken.None);
+    .ExecuteAsync(CancellationToken.None);
 
+Console.WriteLine(await changes);
+/*
 await foreach (var change in changes)
 {
     Console.WriteLine($"{change.Action}: {change.Record.Id}");
-}
+} */
 
 Console.WriteLine("All done!");

@@ -18,6 +18,8 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
     protected DbContext DbContext { get; } = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     public EntityMetadata Metadata { get; } = dbContext.GetEntityMetadata<TEntity>();
 
+    protected int RecordsAffected = 0;
+
     private async IAsyncEnumerable<BulkInsertRecord<TEntity>> InternalExecuteAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -66,10 +68,11 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
                 {
                     ConvertToDataRow(entity, batchTable, entityOffset++, properties, rowHashColumn, rowHashProp,
                         columnsToHash);
+                    
                     if (batchTable.Rows.Count < Options.BatchSize)
                         continue;
 
-                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
+                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, cancellationToken);
 
                     if (Options.Kind == BulkInsertKind.IncrementalChanges)
                     {
@@ -89,7 +92,7 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
             {
                 if (batchTable.Rows.Count > 0)
                 {
-                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, batchTable, cancellationToken);
+                    await CopyRecordsIntoStagingTableAsync(batchTable, batchOffset, cancellationToken);
                 }
 
                 if (Options.Kind == BulkInsertKind.Snapshot)
@@ -100,6 +103,9 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
 
                 if (Options.Kind == BulkInsertKind.Snapshot || batchTable.Rows.Count > 0)
                 {
+                    if (Options.Kind == BulkInsertKind.Snapshot)
+                        batchOffset = 0;
+                    
                     await MergeTempTableIntoStorageTableAsync(batchOffset, cancellationToken);
                 }
             }
@@ -182,12 +188,14 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
         }
     }
 
-    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task<int> ExecuteAsync(CancellationToken cancellationToken)
     {
         Options.TrackChanges = false;
         await foreach (var _ in InternalExecuteAsync(cancellationToken))
         {
         }
+
+        return RecordsAffected;
     }
 
     public IAsyncEnumerable<BulkInsertRecord<TEntity>> ExecuteAndGetChangesAsync(CancellationToken cancellationToken)
@@ -198,7 +206,7 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
 
     protected abstract Task<DataTable> CreateStagingTableAsync(CancellationToken cancellationToken);
     protected abstract ValueTask CopyRecordsIntoStagingTableAsync(DataTable batch, int offset,
-        DataTable tempTable, CancellationToken cancellationToken);
+        CancellationToken cancellationToken);
     protected abstract Task ClearTempTableAsync(CancellationToken cancellationToken);
     protected abstract Task MergeTempTableIntoStorageTableAsync(int startIndex, CancellationToken cancellationToken);
     protected abstract Task IdentifyDeletionsAsync(CancellationToken cancellationToken);
