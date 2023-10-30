@@ -77,6 +77,16 @@ internal sealed class FluentApi<TEntity, TProvider>(TProvider provider) :
         var propertyName = ExpressionHelper.GetPropertyName(propertySelector);
         var columnName = provider.Metadata.GetColumnName(propertyName);
         provider.Options.SoftDeleteColumn = columnName;
+        provider.Options.SoftDeleteType = SoftDeleteType.Bool;
+        return this;
+    }
+    
+    public IBulkLoadAndMergeOptions<TEntity> WithSoftDeletion(Expression<Func<TEntity, DateTime?>> propertySelector)
+    {
+        var propertyName = ExpressionHelper.GetPropertyName(propertySelector);
+        var columnName = provider.Metadata.GetColumnName(propertyName);
+        provider.Options.SoftDeleteColumn = columnName;
+        provider.Options.SoftDeleteType = SoftDeleteType.DateTime;
         return this;
     }
 
@@ -207,6 +217,12 @@ public interface IBulkLoadAndMergeOptions<TEntity> : IBulkLoadAndMerge<TEntity> 
     /// <param name="propertySelector">Property that indicates that the record is soft deleted</param>
     /// <returns></returns>
     IBulkLoadAndMergeOptions<TEntity> WithSoftDeletion(Expression<Func<TEntity, bool>> propertySelector);
+    
+    /// <summary>
+    /// Indicates that when doing snapshot merges, the bulk insertion should soft delete records instead of hard deleting them.
+    /// </summary>
+    /// <param name="propertySelector">Property that indicates when and if the record is soft deleted</param>
+    IBulkLoadAndMergeOptions<TEntity> WithSoftDeletion(Expression<Func<TEntity, DateTime?>> propertySelector);
     
     /// <summary>
     /// Indicates batch size when loading records into database

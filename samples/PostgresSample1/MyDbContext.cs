@@ -10,7 +10,7 @@ public class Employee
     public bool IsAwesome { get; set; }
     public long Version { get; set; }
     public Guid RowHash { get; set; }
-    public bool Deleted { get; set; }
+    public DateTime? Deleted { get; set; }
 }
 
 public class MyDbContext : DbContext

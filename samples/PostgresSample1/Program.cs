@@ -17,7 +17,7 @@ for (var i = 0; i < 8; i++)
 {
     // Change this back and forth between two numbers 1-10 and observe output, to see
     // how records are soft deleted, and then recovered
-    if (i == 5)
+    if (i == 3)
         continue;
     
     var name = "Person #" + i;
@@ -26,7 +26,7 @@ for (var i = 0; i < 8; i++)
     {
         Id = i,
         Name = name,
-        Deleted = false,
+        Deleted = null,
         Version = 1,
         IsAwesome = false,
         LastUpdatedUtc = new DateTime(2004, 01, 02)
@@ -57,13 +57,11 @@ var changes = db
     // We want to execute the merge, and capture all changes made (note: this part is slow and holds the database
     // transaction for a longer period of time, in order to capture the changes. Only use if you must. Otherwise use
     // the fire-and-forge ExecuteAsync method.
-    .ExecuteAsync(CancellationToken.None);
+    .ExecuteAndGetChangesAsync(CancellationToken.None);
 
-Console.WriteLine(await changes);
-/*
 await foreach (var change in changes)
 {
     Console.WriteLine($"{change.Action}: {change.Record.Id}");
-} */
+}
 
 Console.WriteLine("All done!");

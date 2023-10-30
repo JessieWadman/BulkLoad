@@ -223,6 +223,50 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
         return qualifier + "." + FormatIdentifier(identifier);
     }
 
+    protected virtual string TrueValue => "true";
+    protected virtual string FalseValue => "false";
+    protected abstract string CurrentTimestampExpression { get; }
+    
+    protected virtual string IsSoftDeleted(string? qualifier)
+    {
+        var result = string.Empty;
+        if (qualifier != null)
+            result = qualifier + ".";
+
+        result += FormatIdentifier(Options.SoftDeleteColumn!);
+        result += " ";
+        if (Options.SoftDeleteType == SoftDeleteType.Bool)
+            result += " = " + TrueValue;
+        else
+            result += " IS NOT NULL";
+        return result;
+    }
+
+    protected virtual string IsNotSoftDeleted(string? qualifier)
+    {
+        var result = string.Empty;
+        if (qualifier != null)
+            result = qualifier + ".";
+
+        result += FormatIdentifier(Options.SoftDeleteColumn!);
+        result += " ";
+        if (Options.SoftDeleteType == SoftDeleteType.Bool)
+            result += " = " + FalseValue;
+        else
+            result += " IS NULL";
+        return result;
+    }
+
+    protected virtual string SetSoftDeleted
+        => Options.SoftDeleteType == SoftDeleteType.Bool 
+            ? TrueValue 
+            : CurrentTimestampExpression;
+
+    protected virtual string SetNotSoftDeleted 
+        => Options.SoftDeleteType == SoftDeleteType.Bool 
+            ? FalseValue 
+            : "NULL";
+
     protected virtual string GetPrimaryKeyComparison(string? sourceQualifier, string? targetQualifier)
     {
         var clauses = Metadata.PrimaryKeyColumns.Select(col =>

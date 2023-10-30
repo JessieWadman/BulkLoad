@@ -25,6 +25,10 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
         return "[" + identifier + "]";
     }
 
+    protected override string CurrentTimestampExpression => "sysutcdatetime()";
+    protected override string FalseValue => "0";
+    protected override string TrueValue => "1";
+
     private string QualifiedTableName
     {
         get
@@ -95,7 +99,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
 
         var softDeletionComparison = string.Empty;
         if (Options.SoftDeleteColumn != null)
-            softDeletionComparison = $"storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = 0 AND ";
+            softDeletionComparison = IsNotSoftDeleted("storageTable") + " AND ";
         
         // Step 3: Identify records that will be deleted
         var queryText = $"""
@@ -115,10 +119,10 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
         {
             var queryText = $"""
                              UPDATE storageTable SET
-                               {FormatIdentifier(Options.SoftDeleteColumn)} = 1
+                               {FormatIdentifier(Options.SoftDeleteColumn)} = {SetSoftDeleted}
                              FROM {QualifiedTableName} storageTable
                              INNER JOIN {FormatIdentifier(deletionsTableName)} deletions ON {GetPrimaryKeyComparison("deletions", "storageTable")}
-                             WHERE storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = 0
+                             WHERE {IsNotSoftDeleted("storageTable")}
                              """;
             var rowsSoftDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
             RecordsAffected += rowsSoftDeleted;
@@ -152,9 +156,9 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
     {
         var formattedTempTableName = FormatIdentifier(stagingTableName);
 
-        var recordIsNotSoftedDeleted = string.Empty;
+        var recordIsNotSoftDeleted = string.Empty;
         if (Options.SoftDeleteColumn != null)
-            recordIsNotSoftedDeleted = $" AND storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = 0 ";
+            recordIsNotSoftDeleted = " AND " + IsNotSoftDeleted("storageTable");
 
         string queryText;
         
@@ -167,7 +171,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                                  FROM {formattedTempTableName}
                                  INNER JOIN {QualifiedTableName} AS storageTable ON {GetPrimaryKeyComparison(formattedTempTableName, "storageTable")}
                                  WHERE {formattedTempTableName}.__idx >= {tempTableOffset} AND
-                                       ({GetRecordsAreEqualClause("storageTable", formattedTempTableName)} {recordIsNotSoftedDeleted})
+                                       ({GetRecordsAreEqualClause("storageTable", formattedTempTableName)} {recordIsNotSoftDeleted})
                              """;
 
             var noOpCount = await dbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
@@ -190,7 +194,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                 .ToDictionary(x => x, x => "src." + FormatIdentifier(x));
 
         if (Options.SoftDeleteColumn != null)
-            insertValues[Options.SoftDeleteColumn] = "0";
+            insertValues[Options.SoftDeleteColumn] = SetNotSoftDeleted;
 
         foreach (var kp in Options.OnUpdateExpressions)
             insertValues[kp.Key] = kp.Value;

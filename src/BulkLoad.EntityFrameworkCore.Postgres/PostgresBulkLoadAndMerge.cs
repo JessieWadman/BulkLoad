@@ -30,6 +30,8 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         return "\"" + identifier + "\"";
     }
 
+    protected override string CurrentTimestampExpression => "current_timestamp";
+
     private string QualifiedTableName
     {
         get
@@ -147,7 +149,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
 
         var softDeletionComparison = string.Empty;
         if (Options.SoftDeleteColumn != null)
-            softDeletionComparison = $"storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = false AND ";
+            softDeletionComparison = IsNotSoftDeleted("storageTable") + " AND ";
         
         // Step 3: Identify records that will be deleted
         var queryText = $"""
@@ -168,10 +170,10 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
         {
             var queryText = $"""
                              UPDATE {QualifiedTableName} SET
-                               {FormatIdentifier(Options.SoftDeleteColumn)} = true
+                               {FormatIdentifier(Options.SoftDeleteColumn)} = {SetSoftDeleted}
                              FROM {FormatIdentifier(deletionsTableName)} deletions
                              WHERE {GetPrimaryKeyComparison("deletions", QualifiedTableName)} AND
-                                   {QualifiedTableName}.{FormatIdentifier(Options.SoftDeleteColumn)} = false
+                                   {IsNotSoftDeleted(QualifiedTableName)}
                              """;
             var rowsSoftDeleted = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
             RecordsAffected += rowsSoftDeleted;
@@ -207,7 +209,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
 
         var recordIsNotSoftDeleted = string.Empty;
         if (Options.SoftDeleteColumn != null)
-            recordIsNotSoftDeleted = $" AND storageTable.{FormatIdentifier(Options.SoftDeleteColumn)} = false ";
+            recordIsNotSoftDeleted = $" AND {IsNotSoftDeleted("storageTable")} ";
         
         string queryText;
         if (Options.ComparisonMethod != ComparisonMethod.NoComparison)
@@ -244,7 +246,7 @@ public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext)
                 .ToDictionary(x => x, x => "src." + FormatIdentifier(x));
 
         if (Options.SoftDeleteColumn != null)
-            insertValues[Options.SoftDeleteColumn] = "false";
+            insertValues[Options.SoftDeleteColumn] = SetNotSoftDeleted;
 
         foreach (var kp in Options.OnUpdateExpressions)
             insertValues[kp.Key] = kp.Value;

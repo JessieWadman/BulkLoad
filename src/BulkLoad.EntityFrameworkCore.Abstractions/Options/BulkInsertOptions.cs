@@ -7,6 +7,13 @@ public enum ComparisonMethod
     NoComparison
 }
 
+public enum SoftDeleteType
+{
+    None,
+    Bool,
+    DateTime
+}
+
 public class BulkInsertOptions<T>
 {
     public ComparisonMethod ComparisonMethod = ComparisonMethod.ColumnByColumn;
@@ -15,6 +22,7 @@ public class BulkInsertOptions<T>
     public string? RowHashProperty;
     public string? RowHashColumn;
     public string? SoftDeleteColumn = null;
+    public SoftDeleteType SoftDeleteType = SoftDeleteType.None;
     public readonly Dictionary<string, string> OnUpdateExpressions = new();
     public BulkInsertKind Kind = BulkInsertKind.IncrementalChanges;
     public IAsyncEnumerable<T> Source;
