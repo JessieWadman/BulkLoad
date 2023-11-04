@@ -18,7 +18,7 @@ db
     
     // Load a snapshot of entities (will remove/soft delete entities in table that
     // are not included in the local list of entities)
-    .FromSnapshot(GetEmployeesFromWebAp())
+    .FromSnapshot(GetEmployeesFromWebApi())
     
     // If you do not want to load an entire snapshot, but instead a subset of entities, where
     // entities in the target table are not removed/soft deleted, then instead use:
