@@ -119,6 +119,10 @@ internal sealed class FluentApi<TEntity, TProvider>(TProvider provider) :
         => provider.ExecuteAsync(cancellationToken);
 }
 
+/// <summary>
+/// Configure the source of a bulk load operation
+/// </summary>
+/// <typeparam name="TEntity">Type of entity to load</typeparam>
 public interface IBulkLoadSourceConfiguration<TEntity> where TEntity : class
 {
     /// <summary>
@@ -135,6 +139,10 @@ public interface IBulkLoadSourceConfiguration<TEntity> where TEntity : class
     IMergeStatementConfiguration<TEntity> FromIncrementalChanges(IAsyncEnumerable<TEntity> source);
 }
 
+/// <summary>
+/// Configure the merge statement of a bulk load operation
+/// </summary>
+/// <typeparam name="TEntity">Type of entity to load</typeparam>
 public interface IMergeStatementConfiguration<TEntity> where TEntity : class
 {
     /// <summary>
@@ -168,6 +176,10 @@ public interface IMergeStatementConfiguration<TEntity> where TEntity : class
     IBulkLoadAndMergeOptions<TEntity> WithRowHashComparison(Expression<Func<TEntity, Guid>> propertySelector);
 }
 
+/// <summary>
+/// Configure the loading options of a bulk load operation
+/// </summary>
+/// <typeparam name="TEntity"></typeparam>
 public interface IBulkLoadAndMergeOptions<TEntity> : IBulkLoadAndMerge<TEntity> where TEntity : class
 {
     /// <summary>

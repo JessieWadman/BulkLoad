@@ -8,19 +8,12 @@
         <RootNamespace>BulkLoad.EntityFrameworkCore.Abstractions</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Bulk Load And Merge (BLAM) extensions for EntityFrameworkCore Abstractions </Title>
-        <Authors>Jessie Wadman</Authors>
         <Description>Fast and efficient bulk loading of EF Core entities into a database table, using a MERGE statement with optional change detection.</Description>
-        <Copyright>Copyright (c) 2022 Jessie Wadman</Copyright>
-        <PackageProjectUrl>https://github.com/JessieWadman/BulkLoad</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/JessieWadman/BulkLoad/blob/main/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/JessieWadman/BulkLoad</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.2.23480.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0-rc.2.23480.1" />
-        <PackageReference Include="System.IO.Hashing" Version="8.0.0-rc.2.23479.6" />
+        <PackageReference Include="System.IO.Hashing" Version="8.0" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" />
     </ItemGroup>
 
 </Project>

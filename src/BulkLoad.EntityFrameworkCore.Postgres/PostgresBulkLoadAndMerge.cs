@@ -13,9 +13,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace BulkInserter.SqlServer;
+namespace BulkLoad.EntityFrameworkCore.Postgres;
 
-public class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext) 
+internal sealed class PostgresBulkLoadAndMerge<TEntity>(DbContext dbContext) 
     : AbstractBulkLoadAndMerge<TEntity>(dbContext)
     where TEntity : class
 {

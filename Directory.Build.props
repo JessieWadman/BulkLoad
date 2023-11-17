@@ -1,0 +1,17 @@
+<Project>
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <NoWarn>CS1591</NoWarn>        
+        <AnalysisLevel>latest</AnalysisLevel>
+        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <ImplicitUsings>true</ImplicitUsings>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Authors>Jessie Wadman</Authors>
+        <Copyright>Copyright (c) 2022 Jessie Wadman</Copyright>
+        <PackageProjectUrl>https://github.com/JessieWadman/BulkLoad</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>        
+    </PropertyGroup>
+</Project>

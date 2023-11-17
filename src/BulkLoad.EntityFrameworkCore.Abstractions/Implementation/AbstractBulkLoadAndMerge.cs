@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BulkLoad.EntityFrameworkCore.Abstractions.Implementation;
 
-public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : IBulkLoadAndMerge<TEntity>
+internal abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : IBulkLoadAndMerge<TEntity>
     where TEntity : class
 {
     public readonly BulkInsertOptions<TEntity> Options = new();
@@ -62,7 +62,7 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
             var batchOffset = 0;
             var entityOffset = 0;
             
-            await foreach (var entity in Options.Source.WithCancellation(cancellationToken))
+            await foreach (var entity in Options.Source!.WithCancellation(cancellationToken))
             {
                 try
                 {
@@ -325,7 +325,8 @@ public abstract class AbstractBulkLoadAndMerge<TEntity>(DbContext dbContext) : I
         {
             ComparisonMethod.NoComparison => "1=2",
             ComparisonMethod.RowHash => GetRowHashEqualsClause(sourceQualifier, targetQualifier),
-            ComparisonMethod.ColumnByColumn => GetColumnsEqualsClause(sourceQualifier, targetQualifier)
+            ComparisonMethod.ColumnByColumn => GetColumnsEqualsClause(sourceQualifier, targetQualifier),
+            _ => throw new UnreachableException()
         };
     
     protected virtual string GetRecordsAreNotEqualClause(string? sourceQualifier, string? targetQualifier)

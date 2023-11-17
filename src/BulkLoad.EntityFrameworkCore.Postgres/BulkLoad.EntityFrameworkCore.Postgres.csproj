@@ -5,25 +5,18 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
-        <Title>Bulk Load And Merge (BLAM) extensions for EntityFrameworkCore for use with Postgres (Npgsql)  </Title>
-        <Authors>Jessie Wadman</Authors>
+        <Title>Bulk Load And Merge (BLAM) extensions for EntityFrameworkCore for use with Postgres (Npgsql)</Title>
         <Description>Fast and efficient bulk loading of EF Core entities into a postgres database table, using a MERGE statement with optional change detection.</Description>
-        <Copyright>Copyright (c) 2022 Jessie Wadman</Copyright>
-        <PackageProjectUrl>https://github.com/JessieWadman/BulkLoad</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/JessieWadman/BulkLoad/blob/main/LICENSE</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/JessieWadman/BulkLoad</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Npgsql" Version="7.0.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.2.23480.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Npgsql" Version="7.0.6"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\BulkLoad.EntityFrameworkCore.Abstractions\BulkLoad.EntityFrameworkCore.Abstractions.csproj" />
+        <ProjectReference Include="..\BulkLoad.EntityFrameworkCore.Abstractions\BulkLoad.EntityFrameworkCore.Abstractions.csproj"/>
     </ItemGroup>
 
 </Project>

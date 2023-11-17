@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace BulkLoad.EntityFrameworkCore.SqlServer;
 
-public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext) 
+internal sealed class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext) 
     : AbstractBulkLoadAndMerge<TEntity>(dbContext)
     where TEntity : class
 {
@@ -174,7 +174,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
                                        ({GetRecordsAreEqualClause("storageTable", formattedTempTableName)} {recordIsNotSoftDeleted})
                              """;
 
-            var noOpCount = await dbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+            var noOpCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
         }
 
         // Flag updates
@@ -185,7 +185,7 @@ public class SqlServerBulkLoadAndMerge<TEntity>(DbContext dbContext)
             INNER JOIN {QualifiedTableName} AS storageTable ON {GetPrimaryKeyComparison(formattedTempTableName, "storageTable")}
             WHERE {formattedTempTableName}.__idx >= {tempTableOffset} AND {formattedTempTableName}.__action <> 'N'";
 
-        var updateCount = await dbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
+        var updateCount = await DbContext.Database.ExecuteSqlRawAsync(queryText, cancellationToken);
 
         var insertValues =
             Metadata.Properties
